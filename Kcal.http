@@ -1,0 +1,6 @@
+@Kcal_HostAddress = http://localhost:5296
+
+GET {{Kcal_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
