@@ -21,22 +21,37 @@ public class UserService(Context dbContext) : IUserService
 
     public async Task<UserDTO?> GetOne(Guid userId)
     {
-        User? user = await dbContext.Users
-            .Include(u => u.ConsumedProducts)
-            .ThenInclude(cp => cp.Product)
-            .FirstAsync(u => u.UserId == userId);
+        try
+        {
+            User? user = await dbContext.Users
+                .Include(u => u.ConsumedProducts)
+                .ThenInclude(cp => cp.Product)
+                .FirstAsync(u => u.UserId == userId);
 
-        return UserDTO.ModelToDto(user);
+            return UserDTO.ModelToDto(user);
+        }
+        catch (Exception e)
+        {
+            throw new OperationCanceledException($"Erro ao consultar usuário!", e);
+        }
     }
 
     public async Task<UserDTO> Create(User newUser)
     {
-        newUser.DataCadastro = DateTime.Now;
-        newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
+        try
+        {
+            newUser.DataCadastro = DateTime.Now;
+            newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
 
-        await dbContext.Users.AddAsync(newUser);
-        await dbContext.SaveChangesAsync();
-        return UserDTO.ModelToDto(newUser);
+            await dbContext.Users.AddAsync(newUser);
+            await dbContext.SaveChangesAsync();
+            return UserDTO.ModelToDto(newUser)!;
+        }
+        catch (Exception e)
+        {
+            throw new OperationCanceledException($"Erro ao criar usuário!", e);
+        }
+
     }
 
     public async Task<UserDTO?> Update(User updatedUser)
@@ -86,9 +101,9 @@ public class UserService(Context dbContext) : IUserService
         return UserDTO.ModelToDto(user);
     }
 
-    public async Task<bool> ConsultaSeExiste(Guid id)
+    public async Task<bool> IsEmailAvaliable(string email)
     {
-        return await dbContext.Users.AnyAsync(user => user.UserId == id);
+        return await dbContext.Users.AnyAsync(u => u.Email == email);
     }
 
     public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
@@ -103,7 +118,7 @@ public class UserService(Context dbContext) : IUserService
     {
         int altura = user.Altura;
         int peso = user.Peso;
-        int idade = DateTime.Now.Year - user.DataNascimento.Year;
+        int idade = CalcularIdade(user.DataNascimento);
         string sexo = user.Sexo;
 
         if (sexo == "f" || sexo == "F")
@@ -116,4 +131,15 @@ public class UserService(Context dbContext) : IUserService
         }
     }
 
+    private int CalcularIdade(DateTime dataNascimento)
+    {
+        int idade = DateTime.Now.Year - dataNascimento.Year;
+
+        // Ajusta se a data de nascimento ainda não ocorreu neste ano
+        if (DateTime.Now.DayOfYear < dataNascimento.DayOfYear)
+        {
+            idade--;
+        }
+        return idade;
+    }
 }

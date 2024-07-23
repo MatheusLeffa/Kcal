@@ -6,23 +6,36 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UserController(IUserService userService) : ControllerBase
+public class UserController : ControllerBase
 {
-    private readonly IUserService userService = userService;
+    private readonly IUserService _userService;
 
-    // [HttpGet]
-    // public async Task<IActionResult> Get()
-    // {
+    public UserController(IUserService userService)
+    {
+        _userService = userService;
+    }
 
-    //     return Ok();
-    // }
+    [HttpGet("{id}")]
+    public async Task<ActionResult<UserDTO>> GetUserById(Guid id)
+    {
+        UserDTO? user = await _userService.GetOne(id);
+        if (user == null)
+            return NotFound("Usuário não localizado!");
+
+        return Ok(user);
+    }
 
     [HttpPost]
-    public async Task<ActionResult<UserDTO>> Create(UserDTO userDto)
+    public async Task<ActionResult<UserDTO>> Create(CreateUserDTO userDto)
     {
-        bool UserExists = await userService.ConsultaSeExiste(userDto.UserId);
-        if (!UserExists) return BadRequest("User doesn't exist!");
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        return 
+        bool isEmailAvaliable = await _userService.IsEmailAvaliable(userDto.Email);
+        if (!isEmailAvaliable)
+        {
+            UserDTO createdUser = await _userService.Create(CreateUserDTO.DtoToModel(userDto));
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.UserId }, createdUser);
+        }
+        return BadRequest("E-mail já em uso!");
     }
 }

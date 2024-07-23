@@ -16,5 +16,9 @@ public class Context(DbContextOptions options) : DbContext(options)
             .HasMany(product => product.Users)
             .WithMany(users => users.Products)
             .UsingEntity<ConsumedProducts>();
+
+        modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
     }
 }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Kcal.Models;
 
 namespace Kcal.DTOs;
@@ -11,6 +12,7 @@ public class ConsumedProductsDTO
     public int Kcal { get; set; }
     public string Categoria { get; set; } = null!;
     public int Quantidade { get; set; }
+    [DataType(DataType.Date)]
     public DateTime DataConsumo { get; set; }
 
     public static ConsumedProductsDTO ModelToDto(ConsumedProducts cp)
