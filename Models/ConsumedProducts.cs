@@ -8,5 +8,4 @@ public class ConsumedProducts
     public Guid UserId { get; set; }
     public int Quantidade { get; set; }
     public DateTime DataConsumo { get; set; }
-
 }
