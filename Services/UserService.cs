@@ -9,14 +9,24 @@ public class UserService(Context dbContext) : IUserService
 {
     private readonly Context dbContext = dbContext;
 
+    private const string ERRO_SALVAR_ALTERACOES = "Erro ao salvar alterações no banco de dados";
+
+
     public async Task<IEnumerable<UserDTO?>> GetAll()
     {
-        return await dbContext.Users
-            .Include(u => u.ConsumedProducts)
-            .ThenInclude(cp => cp.Product)
-            .OrderBy(user => user.Name)
-            .Select(user => UserDTO.ModelToDto(user))
-            .ToListAsync();
+        try
+        {
+            return await dbContext.Users
+                .Include(u => u.ConsumedProducts)
+                .ThenInclude(cp => cp.Product)
+                .OrderBy(user => user.Name)
+                .Select(user => UserDTO.ModelToDto(user))
+                .ToListAsync();
+        }
+        catch (OperationCanceledException ex)
+        {
+            throw new OperationCanceledException("Erro ao consultar usuários!", ex);
+        }
     }
 
     public async Task<UserDTO?> GetOne(Guid userId)
@@ -30,80 +40,91 @@ public class UserService(Context dbContext) : IUserService
 
             return UserDTO.ModelToDto(user);
         }
-        catch (Exception e)
+        catch (OperationCanceledException ex)
         {
-            throw new OperationCanceledException($"Erro ao consultar usuário!", e);
+            throw new OperationCanceledException("Erro ao consultar usuário!", ex);
         }
     }
 
     public async Task<UserDTO> Create(User newUser)
     {
+        newUser.DataCadastro = DateTime.Now;
+        newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
+
         try
         {
-            newUser.DataCadastro = DateTime.Now;
-            newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
-
             await dbContext.Users.AddAsync(newUser);
             await dbContext.SaveChangesAsync();
             return UserDTO.ModelToDto(newUser)!;
         }
-        catch (Exception e)
+        catch (OperationCanceledException ex)
         {
-            throw new OperationCanceledException($"Erro ao criar usuário!", e);
+            throw new OperationCanceledException("Erro ao criar usuário!", ex);
         }
-
     }
 
-    public async Task<UserDTO?> Update(User updatedUser)
+    public async Task<bool> Update(UpdateUserDTO updatedUser)
     {
         User? user = await dbContext.Users.FindAsync(updatedUser.UserId);
-        if (user != null)
-        {
+        if (user == null) return false;
+
+        if (updatedUser.Name != null)
             user.Name = updatedUser.Name;
 
-            if (user.DataNascimento != updatedUser.DataNascimento ||
-            user.Sexo != updatedUser.Sexo ||
-            user.Peso != updatedUser.Peso ||
-            user.Altura != updatedUser.Altura)
-            {
-                user.DataNascimento = updatedUser.DataNascimento;
-                user.Sexo = updatedUser.Sexo;
-                user.Peso = updatedUser.Peso;
-                user.Altura = updatedUser.Altura;
-                user.MetabolismoBasal = CalcularMetabolismoBasal(user);
-            }
+        if (updatedUser.DataNascimento != null)
+            user.DataNascimento = (DateTime)updatedUser.DataNascimento;
 
-            await dbContext.SaveChangesAsync();
-        }
-        return UserDTO.ModelToDto(user);
+        if (updatedUser.Sexo != null)
+            user.Sexo = updatedUser.Sexo;
+
+        if (updatedUser.Peso != null)
+            user.Peso = (int)updatedUser.Peso;
+
+        if (updatedUser.Altura != null)
+            user.Altura = (int)updatedUser.Altura;
+
+        user.MetabolismoBasal = CalcularMetabolismoBasal(user);
+
+        return await TryToSaveAsync();
     }
 
-    public async Task<UserDTO?> UpdateCredencials(User updatedUser)
+    public async Task<bool> UpdateCredencials(UpdateUserCredencialsDTO updatedUser)
     {
         User? user = await dbContext.Users.FindAsync(updatedUser.UserId);
-        if (user != null)
-        {
-            user.Email = updatedUser.Email;
-            user.Senha = updatedUser.Senha;
-            await dbContext.SaveChangesAsync();
-        }
-        return UserDTO.ModelToDto(user);
+        if (user == null) return false;
+
+        user.Email = updatedUser.Email;
+        user.Senha = updatedUser.Senha;
+
+        return await TryToSaveAsync();
     }
 
-    public async Task<UserDTO?> Delete(Guid userId)
+    public async Task<bool> Delete(Guid userId)
     {
         User? user = await dbContext.Users.FindAsync(userId);
-        if (user != null)
+        if (user == null) return false;
+
+        dbContext.Users.Remove(user);
+
+        return await TryToSaveAsync();
+    }
+
+    private async Task<bool> TryToSaveAsync()
+    {
+        try
         {
-            dbContext.Users.Remove(user);
             await dbContext.SaveChangesAsync();
+            return true;
         }
-        return UserDTO.ModelToDto(user);
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException(ERRO_SALVAR_ALTERACOES, ex);
+        }
     }
 
     public async Task<bool> IsEmailAvaliable(string email)
     {
-        return await dbContext.Users.AnyAsync(u => u.Email == email);
+        return !await dbContext.Users.AnyAsync(u => u.Email == email);
     }
 
     public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
