@@ -8,9 +8,9 @@ public interface IUserService
     Task<UserDTO?> GetOne(Guid userId);
     Task<IEnumerable<UserDTO?>> GetAll();
     Task<UserDTO> Create(User newUser);
-    Task<UserDTO?> Update(User updatedUser);
-    Task<UserDTO?> UpdateCredencials(User updatedUser);
-    Task<UserDTO?> Delete(Guid userId);
+    Task<bool> Update(UpdateUserDTO updatedUser);
+    Task<bool> UpdateCredencials(UpdateUserCredencialsDTO updatedUser);
+    Task<bool> Delete(Guid userId);
     Task<bool> IsEmailAvaliable(string email);
     Task<bool> ValidateUserCredentialsAsync(string email, string password);
 }
