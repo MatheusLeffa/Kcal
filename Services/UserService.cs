@@ -23,9 +23,9 @@ public class UserService(Context dbContext) : IUserService
                 .Select(user => UserDTO.ModelToDto(user))
                 .ToListAsync();
         }
-        catch (OperationCanceledException ex)
+        catch (Exception ex)
         {
-            throw new OperationCanceledException("Erro ao consultar usuários!", ex);
+            throw new InvalidOperationException("Erro ao consultar usuários!", ex);
         }
     }
 
@@ -36,13 +36,13 @@ public class UserService(Context dbContext) : IUserService
             User? user = await dbContext.Users
                 .Include(u => u.ConsumedProducts)
                 .ThenInclude(cp => cp.Product)
-                .FirstAsync(u => u.UserId == userId);
+                .FirstOrDefaultAsync(u => u.UserId == userId);
 
             return UserDTO.ModelToDto(user);
         }
-        catch (OperationCanceledException ex)
+        catch (Exception ex)
         {
-            throw new OperationCanceledException("Erro ao consultar usuário!", ex);
+            throw new InvalidOperationException("Erro ao consultar usuário!", ex);
         }
     }
 
@@ -57,15 +57,15 @@ public class UserService(Context dbContext) : IUserService
             await dbContext.SaveChangesAsync();
             return UserDTO.ModelToDto(newUser)!;
         }
-        catch (OperationCanceledException ex)
+        catch (Exception ex)
         {
             throw new OperationCanceledException("Erro ao criar usuário!", ex);
         }
     }
 
-    public async Task<bool> Update(UpdateUserDTO updatedUser)
+    public async Task<bool> Update(Guid userId, UpdateUserDTO updatedUser)
     {
-        User? user = await dbContext.Users.FindAsync(updatedUser.UserId);
+        User? user = await dbContext.Users.FindAsync(userId);
         if (user == null) return false;
 
         if (updatedUser.Name != null)
@@ -88,9 +88,9 @@ public class UserService(Context dbContext) : IUserService
         return await TryToSaveAsync();
     }
 
-    public async Task<bool> UpdateCredencials(UpdateUserCredencialsDTO updatedUser)
+    public async Task<bool> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser)
     {
-        User? user = await dbContext.Users.FindAsync(updatedUser.UserId);
+        User? user = await dbContext.Users.FindAsync(userId);
         if (user == null) return false;
 
         user.Email = updatedUser.Email;
@@ -109,22 +109,9 @@ public class UserService(Context dbContext) : IUserService
         return await TryToSaveAsync();
     }
 
-    private async Task<bool> TryToSaveAsync()
+    public async Task<bool> IsEmailNotAvaliable(string email)
     {
-        try
-        {
-            await dbContext.SaveChangesAsync();
-            return true;
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException(ERRO_SALVAR_ALTERACOES, ex);
-        }
-    }
-
-    public async Task<bool> IsEmailAvaliable(string email)
-    {
-        return !await dbContext.Users.AnyAsync(u => u.Email == email);
+        return await dbContext.Users.AnyAsync(u => u.Email == email);
     }
 
     public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
@@ -162,5 +149,18 @@ public class UserService(Context dbContext) : IUserService
             idade--;
         }
         return idade;
+    }
+
+    private async Task<bool> TryToSaveAsync()
+    {
+        try
+        {
+            await dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new DbUpdateException(ERRO_SALVAR_ALTERACOES, ex);
+        }
     }
 }

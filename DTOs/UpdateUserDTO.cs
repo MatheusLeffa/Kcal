@@ -4,8 +4,6 @@ namespace Kcal.DTOs;
 
 public class UpdateUserDTO
 {
-    [Required]
-    public Guid UserId { get; set; }
     public string? Name { get; set; }
     [DataType(DataType.Date)]
     public DateTime? DataNascimento { get; set; }
