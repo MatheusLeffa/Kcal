@@ -17,7 +17,8 @@ public class UserController(IUserService userService, ILogger<UserService> logge
     {
         IEnumerable<UserDTO?> users = await _userService.GetAll();
 
-        if (!users.Any()) return NotFound("Não existe usuários cadastrados.");
+        if (!users.Any())
+            return NotFound("Não existe usuários cadastrados.");
 
         return Ok(users);
     }
@@ -26,19 +27,34 @@ public class UserController(IUserService userService, ILogger<UserService> logge
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDTO>> GetUserById(Guid id)
     {
-        UserDTO? user = await _userService.GetOne(id);
-        if (user == null) return NotFound("Usuário não localizado!");
+        UserDTO? user = await _userService.GetById(id);
+        if (user == null)
+            return NotFound("Usuário não localizado!");
 
         return Ok(user);
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<UserDTO>>> SearchUsersByName([FromQuery] string name)
+    {
+        IEnumerable<UserDTO?> users = await _userService.GetByName(name);
+
+        if (users == null || !users.Any())
+            return NotFound($"Não foi localizado usuários com o nome '{name}'.");
+
+        return Ok(users);
+    }
+
+
     [HttpPost("Create")]
     public async Task<ActionResult<UserDTO>> CreateUser(CreateUserDTO userDto)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         bool isEmailNotAvaliable = await _userService.IsEmailNotAvaliable(userDto.Email);
-        if (isEmailNotAvaliable) return BadRequest("E-mail já em uso!");
+        if (isEmailNotAvaliable)
+            return BadRequest("E-mail já em uso!");
 
         try
         {
@@ -55,7 +71,8 @@ public class UserController(IUserService userService, ILogger<UserService> logge
     [HttpPut("Update/{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, UpdateUserDTO userDto)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         try
         {
@@ -72,10 +89,12 @@ public class UserController(IUserService userService, ILogger<UserService> logge
     [HttpPut("UpdateCredencials/{id}")]
     public async Task<IActionResult> UpdateUserCredencials(Guid id, UpdateUserCredencialsDTO userDto)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         bool isEmailNotAvaliable = await _userService.IsEmailNotAvaliable(userDto.Email);
-        if (isEmailNotAvaliable) return BadRequest("E-mail já em uso!");
+        if (isEmailNotAvaliable)
+            return BadRequest("E-mail já em uso!");
 
         try
         {

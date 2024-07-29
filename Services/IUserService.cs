@@ -5,8 +5,9 @@ namespace Kcal.Services;
 
 public interface IUserService
 {
-    Task<UserDTO?> GetOne(Guid userId);
     Task<IEnumerable<UserDTO?>> GetAll();
+    Task<UserDTO?> GetById(Guid userId);
+    Task<IEnumerable<UserDTO?>> GetByName(string name);
     Task<UserDTO> Create(User newUser);
     Task<bool> Update(Guid userId, UpdateUserDTO updatedUser);
     Task<bool> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser);

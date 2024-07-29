@@ -7,7 +7,7 @@ namespace Kcal.Services;
 
 public class UserService(Context dbContext) : IUserService
 {
-    private readonly Context dbContext = dbContext;
+    private readonly Context _dbContext = dbContext;
 
     private const string ERRO_SALVAR_ALTERACOES = "Erro ao salvar alterações no banco de dados";
 
@@ -16,7 +16,7 @@ public class UserService(Context dbContext) : IUserService
     {
         try
         {
-            return await dbContext.Users
+            return await _dbContext.Users
                 .Include(u => u.ConsumedProducts)
                 .ThenInclude(cp => cp.Product)
                 .OrderBy(user => user.Name)
@@ -29,11 +29,11 @@ public class UserService(Context dbContext) : IUserService
         }
     }
 
-    public async Task<UserDTO?> GetOne(Guid userId)
+    public async Task<UserDTO?> GetById(Guid userId)
     {
         try
         {
-            User? user = await dbContext.Users
+            User? user = await _dbContext.Users
                 .Include(u => u.ConsumedProducts)
                 .ThenInclude(cp => cp.Product)
                 .FirstOrDefaultAsync(u => u.UserId == userId);
@@ -46,6 +46,23 @@ public class UserService(Context dbContext) : IUserService
         }
     }
 
+    public async Task<IEnumerable<UserDTO?>> GetByName(string name)
+    {
+        try
+        {
+            return await _dbContext.Users
+                .Where(user => user.Name.Contains(name))
+                .OrderBy(user => user.Name)
+                .Select(user => UserDTO.ModelToDto(user))
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Erro ao consultar usuários!", ex);
+        }
+    }
+
+
     public async Task<UserDTO> Create(User newUser)
     {
         newUser.DataCadastro = DateTime.Now;
@@ -53,8 +70,8 @@ public class UserService(Context dbContext) : IUserService
 
         try
         {
-            await dbContext.Users.AddAsync(newUser);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.Users.AddAsync(newUser);
+            await _dbContext.SaveChangesAsync();
             return UserDTO.ModelToDto(newUser)!;
         }
         catch (Exception ex)
@@ -65,7 +82,7 @@ public class UserService(Context dbContext) : IUserService
 
     public async Task<bool> Update(Guid userId, UpdateUserDTO updatedUser)
     {
-        User? user = await dbContext.Users.FindAsync(userId);
+        User? user = await _dbContext.Users.FindAsync(userId);
         if (user == null) return false;
 
         if (updatedUser.Name != null)
@@ -90,7 +107,7 @@ public class UserService(Context dbContext) : IUserService
 
     public async Task<bool> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser)
     {
-        User? user = await dbContext.Users.FindAsync(userId);
+        User? user = await _dbContext.Users.FindAsync(userId);
         if (user == null) return false;
 
         user.Email = updatedUser.Email;
@@ -101,22 +118,22 @@ public class UserService(Context dbContext) : IUserService
 
     public async Task<bool> Delete(Guid userId)
     {
-        User? user = await dbContext.Users.FindAsync(userId);
+        User? user = await _dbContext.Users.FindAsync(userId);
         if (user == null) return false;
 
-        dbContext.Users.Remove(user);
+        _dbContext.Users.Remove(user);
 
         return await TryToSaveAsync();
     }
 
     public async Task<bool> IsEmailNotAvaliable(string email)
     {
-        return await dbContext.Users.AnyAsync(u => u.Email == email);
+        return await _dbContext.Users.AnyAsync(u => u.Email == email);
     }
 
     public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
     {
-        User? user = await dbContext.Users
+        User? user = await _dbContext.Users
             .Where(user => user.Email == email && user.Senha == password)
             .FirstOrDefaultAsync();
         return user != null;
@@ -155,7 +172,7 @@ public class UserService(Context dbContext) : IUserService
     {
         try
         {
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
