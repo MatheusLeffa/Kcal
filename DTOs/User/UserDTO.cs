@@ -9,6 +9,8 @@ public class UserDTO
     public string Name { get; set; } = null!;
     [DataType(DataType.Date)]
     public DateTime DataNascimento { get; set; }
+    [MaxLength(1)]
+    [RegularExpression("^[FfMm]$", ErrorMessage = "Sexo deve ser 'F', 'f', 'M', 'm'")]
     public string Sexo { get; set; } = null!;
     public int Peso { get; set; }
     public int Altura { get; set; }
@@ -17,19 +19,7 @@ public class UserDTO
     public string Email { get; set; } = null!;
     public IEnumerable<ConsumedProductsDTO> ConsumedProducts { get; set; } = null!;
 
-    public static User DtoToModel(UserDTO userDto)
-    {
-        return new User
-        {
-            UserId = userDto.UserId,
-            Name = userDto.Name,
-            DataNascimento = userDto.DataNascimento,
-            Sexo = userDto.Sexo,
-            Peso = userDto.Peso,
-            Altura = userDto.Altura,
-            Email = userDto.Email,
-        };
-    }
+
 
     public static UserDTO? ModelToDto(User? user)
     {

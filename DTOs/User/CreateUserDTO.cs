@@ -22,6 +22,7 @@ public class CreateUserDTO
     public string Email { get; set; } = null!;
     [Required]
     [MaxLength(50)]
+    [DataType(DataType.Password)]
     public string Senha { get; set; } = null!;
 
     public static User DtoToModel(CreateUserDTO createUserDTO)
