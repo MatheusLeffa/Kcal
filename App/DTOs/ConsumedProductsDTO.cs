@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Kcal.Models;
+using Kcal.App.Models;
 
-namespace Kcal.DTOs;
+namespace Kcal.App.DTOs;
 
 public class ConsumedProductsDTO
 {

@@ -1,7 +1,7 @@
-using Kcal.Models;
+using Kcal.App.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kcal.Database;
+namespace Kcal.App.Database;
 
 public class Context(DbContextOptions options) : DbContext(options)
 {

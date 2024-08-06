@@ -1,6 +1,6 @@
-using Kcal.Models;
+using Kcal.App.Models;
 
-namespace Kcal.Services;
+namespace Kcal.App.Services;
 
 public interface IProductService
 {

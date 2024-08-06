@@ -1,7 +1,7 @@
-namespace Kcal.Controllers;
+namespace Kcal.App.Controllers;
 
-using Kcal.DTOs;
-using Kcal.Services;
+using Kcal.App.DTOs;
+using Kcal.App.Services;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]

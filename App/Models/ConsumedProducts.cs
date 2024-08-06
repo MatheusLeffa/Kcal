@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Kcal.Models;
+namespace Kcal.App.Models;
 
 public class ConsumedProducts
 {

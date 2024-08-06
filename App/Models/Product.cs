@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Kcal.Models;
+namespace Kcal.App.Models;
 
 public class Product
 {

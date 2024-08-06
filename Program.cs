@@ -1,5 +1,5 @@
-using Kcal.Database;
-using Kcal.Services;
+using Kcal.App.Database;
+using Kcal.App.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 

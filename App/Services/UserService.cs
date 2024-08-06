@@ -1,9 +1,9 @@
-using Kcal.Database;
-using Kcal.DTOs;
-using Kcal.Models;
+using Kcal.App.Database;
+using Kcal.App.DTOs;
+using Kcal.App.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kcal.Services;
+namespace Kcal.App.Services;
 
 public class UserService(Context dbContext) : IUserService
 {
