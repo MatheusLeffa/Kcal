@@ -2,6 +2,7 @@ namespace Kcal.App.Controllers;
 
 using Kcal.App.DTOs;
 using Kcal.App.Services;
+using Kcal.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
@@ -13,29 +14,48 @@ public class UserController(IUserService userService, ILogger<UserService> logge
 
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserDTO>>> GetAllUsers(Guid id)
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetAll(Guid id)
     {
-        IEnumerable<UserDTO?> users = await _userService.GetAll();
+        IEnumerable<UserDTO?> users;
+        try
+        {
+            users = await _userService.GetAll();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao consultar usuários!");
+        }
 
         if (!users.Any())
-            return NotFound("Não existe usuários cadastrados.");
+            return NotFound(new ErroDto("Não existe usuários cadastrados."));
 
-        return Ok(users);
+        return Ok(new SucessoDto<IEnumerable<UserDTO?>>(users));
     }
 
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<UserDTO>> GetUserById(Guid id)
+    public async Task<ActionResult<UserDTO>> GetById(Guid id)
     {
-        UserDTO? user = await _userService.GetById(id);
+        UserDTO? user;
+        try
+        {
+            user = await _userService.GetById(id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao consultar usuário!");
+        }
+        
         if (user == null)
-            return NotFound("Usuário não localizado!");
+            return NotFound(new ErroDto("Usuário não localizado!"));
 
-        return Ok(user);
+        return Ok(new SucessoDto<UserDTO>(user));
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<IEnumerable<UserDTO>>> SearchUsersByName([FromQuery] string name)
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetByName([FromQuery] string name)
     {
         IEnumerable<UserDTO?> users = await _userService.GetByName(name);
 
@@ -59,7 +79,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         try
         {
             UserDTO createdUser = await _userService.Create(CreateUserDTO.DtoToModel(userDto));
-            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.UserId }, createdUser);
+            return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
         }
         catch (Exception ex)
         {

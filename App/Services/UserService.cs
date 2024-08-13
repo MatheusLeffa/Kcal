@@ -14,19 +14,12 @@ public class UserService(Context dbContext) : IUserService
 
     public async Task<IEnumerable<UserDTO?>> GetAll()
     {
-        try
-        {
-            return await _dbContext.Users
-                .Include(u => u.ConsumedProducts)
-                .ThenInclude(cp => cp.Product)
-                .OrderBy(user => user.Name)
-                .Select(user => UserDTO.ModelToDto(user))
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Erro ao consultar usuários!", ex);
-        }
+        return await _dbContext.Users
+            .Include(u => u.ConsumedProducts)
+            .ThenInclude(cp => cp.Product)
+            .OrderBy(user => user.Name)
+            .Select(user => UserDTO.ModelToDto(user))
+            .ToListAsync();
     }
 
     public async Task<UserDTO?> GetById(Guid userId)

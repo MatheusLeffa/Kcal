@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kcal.Controllers;
+namespace Kcal.App.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
