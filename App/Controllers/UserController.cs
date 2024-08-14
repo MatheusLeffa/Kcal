@@ -1,6 +1,8 @@
 namespace Kcal.App.Controllers;
 
+using System.Data;
 using Kcal.App.DTOs;
+using Kcal.App.Exceptions;
 using Kcal.App.Services;
 using Kcal.DTOs;
 using Microsoft.AspNetCore.Mvc;
@@ -16,53 +18,55 @@ public class UserController(IUserService userService, ILogger<UserService> logge
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserDTO>>> GetAll(Guid id)
     {
-        IEnumerable<UserDTO?> users;
         try
         {
-            users = await _userService.GetAll();
+            IEnumerable<UserDTO?> users = await _userService.GetAll();
+            return Ok(new SucessoDto<IEnumerable<UserDTO?>>(users));
         }
         catch (Exception ex)
         {
             logger.LogError(ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao consultar usuários!");
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
         }
-
-        if (!users.Any())
-            return NotFound(new ErroDto("Não existe usuários cadastrados."));
-
-        return Ok(new SucessoDto<IEnumerable<UserDTO?>>(users));
     }
 
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDTO>> GetById(Guid id)
     {
-        UserDTO? user;
         try
         {
-            user = await _userService.GetById(id);
+            UserDTO? user = await _userService.GetById(id);
+            return Ok(new SucessoDto<UserDTO>(user));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ErroDto(ex.Message));
         }
         catch (Exception ex)
         {
             logger.LogError(ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao consultar usuário!");
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
         }
-        
-        if (user == null)
-            return NotFound(new ErroDto("Usuário não localizado!"));
-
-        return Ok(new SucessoDto<UserDTO>(user));
     }
 
-    [HttpGet("search")]
+    [HttpGet("Search")]
     public async Task<ActionResult<IEnumerable<UserDTO>>> GetByName([FromQuery] string name)
     {
-        IEnumerable<UserDTO?> users = await _userService.GetByName(name);
-
-        if (users == null || !users.Any())
-            return NotFound($"Não foi localizado usuários com o nome '{name}'.");
-
-        return Ok(users);
+        try
+        {
+            IEnumerable<UserDTO?> users = await _userService.GetByName(name);
+            return Ok(new SucessoDto<IEnumerable<UserDTO?>>(users));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ErroDto(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
+        }
     }
 
 

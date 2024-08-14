@@ -1,5 +1,6 @@
 using Kcal.App.Database;
 using Kcal.App.DTOs;
+using Kcal.App.Exceptions;
 using Kcal.App.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,35 +25,25 @@ public class UserService(Context dbContext) : IUserService
 
     public async Task<UserDTO?> GetById(Guid userId)
     {
-        try
-        {
-            User? user = await _dbContext.Users
-                .Include(u => u.ConsumedProducts)
-                .ThenInclude(cp => cp.Product)
-                .FirstOrDefaultAsync(u => u.UserId == userId);
-
-            return UserDTO.ModelToDto(user);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Erro ao consultar usuário!", ex);
-        }
+        User? user = await _dbContext.Users
+            .Include(u => u.ConsumedProducts)
+            .ThenInclude(cp => cp.Product)
+            .FirstOrDefaultAsync(u => u.UserId == userId) ?? throw new NotFoundException("Não foi localizado usuário!");
+        return UserDTO.ModelToDto(user);
     }
 
     public async Task<IEnumerable<UserDTO?>> GetByName(string name)
     {
-        try
-        {
-            return await _dbContext.Users
-                .Where(user => user.Name.Contains(name))
-                .OrderBy(user => user.Name)
-                .Select(user => UserDTO.ModelToDto(user))
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Erro ao consultar usuários!", ex);
-        }
+        var users = await _dbContext.Users
+            .Where(user => user.Name.Contains(name))
+            .OrderBy(user => user.Name)
+            .Select(user => UserDTO.ModelToDto(user))
+            .ToListAsync();
+
+        if (users.Count == 0)
+            throw new NotFoundException("Não foi localizado usuários!");
+
+        return users;
     }
 
 
@@ -61,16 +52,11 @@ public class UserService(Context dbContext) : IUserService
         newUser.DataCadastro = DateTime.Now;
         newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
 
-        try
-        {
-            await _dbContext.Users.AddAsync(newUser);
-            await _dbContext.SaveChangesAsync();
-            return UserDTO.ModelToDto(newUser)!;
-        }
-        catch (Exception ex)
-        {
-            throw new OperationCanceledException("Erro ao criar usuário!", ex);
-        }
+        await _dbContext.Users.AddAsync(newUser);
+        await _dbContext.SaveChangesAsync();
+        return UserDTO.ModelToDto(newUser)!;
+
+
     }
 
     public async Task<bool> Update(Guid userId, UpdateUserDTO updatedUser)
