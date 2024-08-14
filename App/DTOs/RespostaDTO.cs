@@ -4,7 +4,7 @@ public abstract class RespostaDTO
 {
     public bool Sucesso { get; set; }
 
-    public RespostaDTO() { }
+    protected RespostaDTO() { }
 }
 
 // Se sucesso:

@@ -13,7 +13,7 @@ public class UserService(Context dbContext) : IUserService
     private const string ERRO_SALVAR_ALTERACOES = "Erro ao salvar alterações no banco de dados";
 
 
-    public async Task<IEnumerable<UserDTO?>> GetAll()
+    public async Task<List<UserDTO?>> GetAll()
     {
         return await _dbContext.Users
             .Include(u => u.ConsumedProducts)
@@ -32,7 +32,7 @@ public class UserService(Context dbContext) : IUserService
         return UserDTO.ModelToDto(user);
     }
 
-    public async Task<IEnumerable<UserDTO?>> GetByName(string name)
+    public async Task<List<UserDTO?>> GetByName(string name)
     {
         var users = await _dbContext.Users
             .Where(user => user.Name.Contains(name))

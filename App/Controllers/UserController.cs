@@ -16,16 +16,16 @@ public class UserController(IUserService userService, ILogger<UserService> logge
 
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserDTO>>> GetAll(Guid id)
+    public async Task<ActionResult<List<UserDTO>>> GetAll(Guid id)
     {
         try
         {
-            IEnumerable<UserDTO?> users = await _userService.GetAll();
-            return Ok(new SucessoDto<IEnumerable<UserDTO?>>(users));
+            List<UserDTO?> users = await _userService.GetAll();
+            return Ok(new SucessoDto<List<UserDTO?>>(users));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
         }
     }
@@ -45,18 +45,18 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
         }
     }
 
     [HttpGet("Search")]
-    public async Task<ActionResult<IEnumerable<UserDTO>>> GetByName([FromQuery] string name)
+    public async Task<ActionResult<List<UserDTO>>> GetByName([FromQuery] string name)
     {
         try
         {
-            IEnumerable<UserDTO?> users = await _userService.GetByName(name);
-            return Ok(new SucessoDto<IEnumerable<UserDTO?>>(users));
+            List<UserDTO?> users = await _userService.GetByName(name);
+            return Ok(new SucessoDto<List<UserDTO?>>(users));
         }
         catch (NotFoundException ex)
         {
@@ -64,7 +64,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
         }
     }
@@ -87,7 +87,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"{ex.Message}");
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao criar usuário.");
         }
     }
@@ -105,7 +105,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"{ex.Message}");
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao salvar alterações do usuário no banco de dados.");
         }
     }
@@ -127,7 +127,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"{ex.Message}");
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao alterar as credenciais do usuário no banco.");
         }
     }
@@ -142,7 +142,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"{ex.Message}");
+            logger.LogError(ex, ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao deletar usuário no banco de dados.");
         }
     }
