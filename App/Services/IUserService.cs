@@ -9,9 +9,8 @@ public interface IUserService
     Task<UserDTO?> GetById(Guid userId);
     Task<List<UserDTO?>> GetByName(string name);
     Task<UserDTO> Create(User newUser);
-    Task<bool> Update(Guid userId, UpdateUserDTO updatedUser);
-    Task<bool> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser);
-    Task<bool> Delete(Guid userId);
-    Task<bool> IsEmailNotAvaliable(string email);
-    Task<bool> ValidateUserCredentialsAsync(string email, string password);
+    Task<UserDTO> Update(Guid userId, UpdateUserDTO updatedUser);
+    Task<UserDTO> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser);
+    Task Delete(Guid userId);
+    bool IsEmailNotAvaliable(string email);
 }

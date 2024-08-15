@@ -1,5 +1,5 @@
 namespace Kcal.App.Exceptions;
 
-public class NotFoundException(String message) : HttpRequestException(message)
+public class NotFoundException(string message) : Exception(message)
 {
 }

@@ -2,6 +2,7 @@ using Kcal.App.Database;
 using Kcal.App.DTOs;
 using Kcal.App.Exceptions;
 using Kcal.App.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kcal.App.Services;
@@ -9,9 +10,6 @@ namespace Kcal.App.Services;
 public class UserService(Context dbContext) : IUserService
 {
     private readonly Context _dbContext = dbContext;
-
-    private const string ERRO_SALVAR_ALTERACOES = "Erro ao salvar alterações no banco de dados";
-
 
     public async Task<List<UserDTO?>> GetAll()
     {
@@ -40,29 +38,25 @@ public class UserService(Context dbContext) : IUserService
             .Select(user => UserDTO.ModelToDto(user))
             .ToListAsync();
 
-        if (users.Count == 0)
-            throw new NotFoundException("Não foi localizado usuários!");
-
         return users;
     }
 
 
     public async Task<UserDTO> Create(User newUser)
     {
+        if (IsEmailNotAvaliable(newUser.Email)) throw new EmailNotAvaliableException("Email já em uso!");
+
         newUser.DataCadastro = DateTime.Now;
         newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
 
         await _dbContext.Users.AddAsync(newUser);
         await _dbContext.SaveChangesAsync();
         return UserDTO.ModelToDto(newUser)!;
-
-
     }
 
-    public async Task<bool> Update(Guid userId, UpdateUserDTO updatedUser)
+    public async Task<UserDTO> Update(Guid userId, UpdateUserDTO updatedUser)
     {
-        User? user = await _dbContext.Users.FindAsync(userId);
-        if (user == null) return false;
+        User? user = await _dbContext.Users.FindAsync(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
 
         if (updatedUser.Name != null)
             user.Name = updatedUser.Name;
@@ -81,41 +75,33 @@ public class UserService(Context dbContext) : IUserService
 
         user.MetabolismoBasal = CalcularMetabolismoBasal(user);
 
-        return await TryToSaveAsync();
+        await _dbContext.SaveChangesAsync();
+        return UserDTO.ModelToDto(user)!;
     }
 
-    public async Task<bool> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser)
+    public async Task<UserDTO> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser)
     {
-        User? user = await _dbContext.Users.FindAsync(userId);
-        if (user == null) return false;
 
-        user.Email = updatedUser.Email;
-        user.Senha = updatedUser.Senha;
+        User? user = await _dbContext.Users.FindAsync(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
 
-        return await TryToSaveAsync();
+        if (IsEmailNotAvaliable(updatedUser.EmailNovo)) throw new EmailNotAvaliableException("Email já em uso!");
+
+        user.Email = updatedUser.EmailNovo;
+        user.Senha = updatedUser.SenhaNova;
+        await _dbContext.SaveChangesAsync();
+        return UserDTO.ModelToDto(user)!;
     }
 
-    public async Task<bool> Delete(Guid userId)
+    public async Task Delete(Guid userId)
     {
-        User? user = await _dbContext.Users.FindAsync(userId);
-        if (user == null) return false;
-
+        User? user = await _dbContext.Users.FindAsync(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
         _dbContext.Users.Remove(user);
-
-        return await TryToSaveAsync();
+        await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<bool> IsEmailNotAvaliable(string email)
+    public bool IsEmailNotAvaliable(string email)
     {
-        return await _dbContext.Users.AnyAsync(u => u.Email == email);
-    }
-
-    public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
-    {
-        User? user = await _dbContext.Users
-            .Where(user => user.Email == email && user.Senha == password)
-            .FirstOrDefaultAsync();
-        return user != null;
+        return _dbContext.Users.Any(u => u.Email == email);
     }
 
     private int CalcularMetabolismoBasal(User user)
@@ -145,18 +131,5 @@ public class UserService(Context dbContext) : IUserService
             idade--;
         }
         return idade;
-    }
-
-    private async Task<bool> TryToSaveAsync()
-    {
-        try
-        {
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            throw new DbUpdateException(ERRO_SALVAR_ALTERACOES, ex);
-        }
     }
 }

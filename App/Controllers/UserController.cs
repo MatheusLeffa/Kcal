@@ -26,10 +26,9 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         catch (Exception ex)
         {
             logger.LogError(ex, ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro ao buscar usuários."));
         }
     }
-
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDTO>> GetById(Guid id)
@@ -46,7 +45,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         catch (Exception ex)
         {
             logger.LogError(ex, ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro ao buscar usuário."));
         }
     }
 
@@ -58,50 +57,47 @@ public class UserController(IUserService userService, ILogger<UserService> logge
             List<UserDTO?> users = await _userService.GetByName(name);
             return Ok(new SucessoDto<List<UserDTO?>>(users));
         }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new ErroDto(ex.Message));
-        }
         catch (Exception ex)
         {
             logger.LogError(ex, ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro interno no servidor."));
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro ao buscar usuário."));
         }
     }
-
 
     [HttpPost("Create")]
     public async Task<ActionResult<UserDTO>> CreateUser(CreateUserDTO userDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        bool isEmailNotAvaliable = await _userService.IsEmailNotAvaliable(userDto.Email);
-        if (isEmailNotAvaliable)
-            return BadRequest("E-mail já em uso!");
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         try
         {
             UserDTO createdUser = await _userService.Create(CreateUserDTO.DtoToModel(userDto));
-            return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
+            return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, new SucessoDto<UserDTO>(createdUser));
+        }
+        catch (EmailNotAvaliableException ex)
+        {
+            return BadRequest(new ErroDto(ex.Message));
         }
         catch (Exception ex)
         {
             logger.LogError(ex, ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao criar usuário.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErroDto("Erro ao criar usuário."));
         }
     }
 
-    [HttpPut("Update/{id}")]
-    public async Task<IActionResult> UpdateUser(Guid id, UpdateUserDTO userDto)
+    [HttpPut("Update/{id:guid}")]
+    public async Task<IActionResult> UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserDTO userDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         try
         {
-            bool isUpdated = await _userService.Update(id, userDto);
-            return isUpdated ? Ok() : BadRequest();
+            var updatedUser = await _userService.Update(id, userDto);
+            return AcceptedAtAction(nameof(GetById), new { id = updatedUser.UserId }, new SucessoDto<UserDTO>(updatedUser));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ErroDto(ex.Message));
         }
         catch (Exception ex)
         {
@@ -110,20 +106,22 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
     }
 
-    [HttpPut("UpdateCredencials/{id}")]
-    public async Task<IActionResult> UpdateUserCredencials(Guid id, UpdateUserCredencialsDTO userDto)
+    [HttpPut("UpdateCredencials/{id:guid}")]
+    public async Task<IActionResult> UpdateCredencials([FromRoute] Guid id, [FromBody] UpdateUserCredencialsDTO userDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        bool isEmailNotAvaliable = await _userService.IsEmailNotAvaliable(userDto.Email);
-        if (isEmailNotAvaliable)
-            return BadRequest("E-mail já em uso!");
-
+        if (!ModelState.IsValid) return BadRequest(ModelState);
         try
         {
-            bool isUpdated = await _userService.UpdateCredencials(id, userDto);
-            return isUpdated ? Ok() : BadRequest();
+            UserDTO user = await _userService.UpdateCredencials(id, userDto);
+            return AcceptedAtAction(nameof(GetById), new { id = user.UserId }, new SucessoDto<UserDTO>(user));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ErroDto(ex.Message));
+        }
+        catch (EmailNotAvaliableException ex)
+        {
+            return BadRequest(new ErroDto(ex.Message));
         }
         catch (Exception ex)
         {
@@ -133,12 +131,16 @@ public class UserController(IUserService userService, ILogger<UserService> logge
     }
 
     [HttpDelete("Delete/{id}")]
-    public async Task<IActionResult> DeleteUser(Guid id)
+    public async Task<IActionResult> DeleteUser([FromRoute] Guid id)
     {
         try
         {
-            bool isDeleted = await _userService.Delete(id);
-            return isDeleted ? Ok() : BadRequest();
+            await _userService.Delete(id);
+            return AcceptedAtAction(nameof(GetById), new { id });
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ErroDto(ex.Message));
         }
         catch (Exception ex)
         {
