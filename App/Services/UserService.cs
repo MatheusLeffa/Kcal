@@ -2,7 +2,6 @@ using Kcal.App.Database;
 using Kcal.App.DTOs;
 using Kcal.App.Exceptions;
 using Kcal.App.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kcal.App.Services;
