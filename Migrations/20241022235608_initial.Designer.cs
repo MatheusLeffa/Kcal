@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kcal.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20240729020023_AddUniqueConstraintToEmail")]
-    partial class AddUniqueConstraintToEmail
+    [Migration("20241022235608_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Kcal.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Kcal.Models.ConsumedProducts", b =>
+            modelBuilder.Entity("Kcal.App.Models.ConsumedProducts", b =>
                 {
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
@@ -44,11 +44,27 @@ namespace Kcal.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ConsumedProducts");
+
+                    b.HasData(
+                        new
+                        {
+                            ProductId = new Guid("094d7335-7b16-4d5b-a5fe-7447e7d17eb1"),
+                            UserId = new Guid("6af0fffc-0f59-4298-9528-eeae4856d7f2"),
+                            DataConsumo = new DateTime(2024, 10, 22, 23, 56, 8, 390, DateTimeKind.Utc).AddTicks(6140),
+                            Quantidade = 1
+                        },
+                        new
+                        {
+                            ProductId = new Guid("dbb17be4-0d21-47a6-9513-c935e4a9b62b"),
+                            UserId = new Guid("6af0fffc-0f59-4298-9528-eeae4856d7f2"),
+                            DataConsumo = new DateTime(2024, 10, 22, 23, 56, 8, 390, DateTimeKind.Utc).AddTicks(6143),
+                            Quantidade = 2
+                        });
                 });
 
-            modelBuilder.Entity("Kcal.Models.Product", b =>
+            modelBuilder.Entity("Kcal.App.Models.Product", b =>
                 {
-                    b.Property<Guid>("ProductId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -74,14 +90,36 @@ namespace Kcal.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("ProductId");
+                    b.HasKey("Id");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("094d7335-7b16-4d5b-a5fe-7447e7d17eb1"),
+                            Categoria = "Fruta",
+                            DataCadastro = new DateTime(2024, 10, 22, 23, 56, 8, 390, DateTimeKind.Utc).AddTicks(5926),
+                            Gramas = 50,
+                            Kcal = 20,
+                            Marca = "Natural",
+                            Nome = "Laranja"
+                        },
+                        new
+                        {
+                            Id = new Guid("dbb17be4-0d21-47a6-9513-c935e4a9b62b"),
+                            Categoria = "Grãos",
+                            DataCadastro = new DateTime(2024, 10, 22, 23, 56, 8, 390, DateTimeKind.Utc).AddTicks(5929),
+                            Gramas = 100,
+                            Kcal = 80,
+                            Marca = "Namorado",
+                            Nome = "Arroz"
+                        });
                 });
 
-            modelBuilder.Entity("Kcal.Models.User", b =>
+            modelBuilder.Entity("Kcal.App.Models.User", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -94,10 +132,6 @@ namespace Kcal.Migrations
                     b.Property<DateTime>("DataNascimento")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("MetabolismoBasal")
                         .HasColumnType("int");
 
@@ -108,33 +142,38 @@ namespace Kcal.Migrations
                     b.Property<int>("Peso")
                         .HasColumnType("int");
 
-                    b.Property<string>("Senha")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Sexo")
                         .IsRequired()
                         .HasMaxLength(2)
                         .HasColumnType("nvarchar(2)");
 
-                    b.HasKey("UserId");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
+                    b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("6af0fffc-0f59-4298-9528-eeae4856d7f2"),
+                            Altura = 180,
+                            DataCadastro = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DataNascimento = new DateTime(2024, 10, 22, 23, 56, 8, 390, DateTimeKind.Utc).AddTicks(5917),
+                            MetabolismoBasal = 0,
+                            Name = "Matheus",
+                            Peso = 80,
+                            Sexo = "M"
+                        });
                 });
 
-            modelBuilder.Entity("Kcal.Models.ConsumedProducts", b =>
+            modelBuilder.Entity("Kcal.App.Models.ConsumedProducts", b =>
                 {
-                    b.HasOne("Kcal.Models.Product", "Product")
+                    b.HasOne("Kcal.App.Models.Product", "Product")
                         .WithMany("ConsumedProducts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Kcal.Models.User", "User")
+                    b.HasOne("Kcal.App.Models.User", "User")
                         .WithMany("ConsumedProducts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -145,12 +184,12 @@ namespace Kcal.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Kcal.Models.Product", b =>
+            modelBuilder.Entity("Kcal.App.Models.Product", b =>
                 {
                     b.Navigation("ConsumedProducts");
                 });
 
-            modelBuilder.Entity("Kcal.Models.User", b =>
+            modelBuilder.Entity("Kcal.App.Models.User", b =>
                 {
                     b.Navigation("ConsumedProducts");
                 });

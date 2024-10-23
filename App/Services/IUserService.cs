@@ -10,7 +10,5 @@ public interface IUserService
     Task<List<UserDTO?>> GetByName(string name);
     Task<UserDTO> Create(User newUser);
     Task<UserDTO> Update(Guid userId, UpdateUserDTO updatedUser);
-    Task<UserDTO> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser);
     Task Delete(Guid userId);
-    bool IsEmailNotAvaliable(string email);
 }

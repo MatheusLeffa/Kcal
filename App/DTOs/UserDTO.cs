@@ -16,13 +16,12 @@ public class UserDTO
     public int MetabolismoBasal { get; set; }
     [EmailAddress]
     public string Email { get; set; } = null!;
-    public IEnumerable<ConsumedProductsDTO> ConsumedProducts { get; set; } = null!;
 
     public static User DtoToModel(UserDTO userDto)
     {
         return new User
         {
-            UserId = userDto.UserId,
+            Id = userDto.UserId,
             Name = userDto.Name,
             DataNascimento = userDto.DataNascimento,
             Sexo = userDto.Sexo,
@@ -38,7 +37,7 @@ public class UserDTO
 
         return new UserDTO
         {
-            UserId = user.UserId,
+            UserId = user.Id,
             Name = user.Name,
             DataNascimento = user.DataNascimento,
             Sexo = user.Sexo,
@@ -46,7 +45,6 @@ public class UserDTO
             Altura = user.Altura,
             MetabolismoBasal = user.MetabolismoBasal,
             Email = user.Email,
-            ConsumedProducts = user.ConsumedProducts.Select(ConsumedProductsDTO.ModelToDto)
         };
     }
 }

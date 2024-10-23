@@ -20,9 +20,6 @@ public class CreateUserDTO
     [Required]
     [EmailAddress]
     public string Email { get; set; } = null!;
-    [Required]
-    [MaxLength(50)]
-    public string Senha { get; set; } = null!;
 
     public static User DtoToModel(CreateUserDTO createUserDTO)
     {
@@ -32,9 +29,7 @@ public class CreateUserDTO
             DataNascimento = createUserDTO.DataNascimento,
             Sexo = createUserDTO.Sexo,
             Peso = createUserDTO.Peso,
-            Altura = createUserDTO.Altura,
-            Email = createUserDTO.Email,
-            Senha = createUserDTO.Senha,
+            Altura = createUserDTO.Altura
         };
     }
 }

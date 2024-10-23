@@ -7,7 +7,7 @@ public class User
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
-    public Guid UserId { get; set; }
+    public Guid Id { get; set; }
     public string Name { get; set; } = null!;
     [DataType(DataType.Date)]
     public DateTime DataNascimento { get; set; }
@@ -18,8 +18,6 @@ public class User
     public int MetabolismoBasal { get; set; }
     [EmailAddress]
     public string Email { get; set; } = null!;
-    [MaxLength(50)]
-    public string Senha { get; set; } = null!;
     public DateTime DataCadastro { get; set; }
     public List<Product> Products { get; set; } = new List<Product>();
     public List<ConsumedProducts> ConsumedProducts { get; set; } = new List<ConsumedProducts>();

@@ -7,7 +7,7 @@ public class Product
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
-    public Guid ProductId { get; set; }
+    public Guid Id { get; set; }
     [MaxLength(50, ErrorMessage = "Nome não pode ter mais de 50 characteres!")]
     public string Nome { get; set; } = null!;
     public string? Marca { get; set; }

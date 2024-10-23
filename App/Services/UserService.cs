@@ -1,61 +1,51 @@
-using Kcal.App.Database;
 using Kcal.App.DTOs;
 using Kcal.App.Exceptions;
 using Kcal.App.Models;
-using Microsoft.EntityFrameworkCore;
+using Kcal.App.Repository;
 
 namespace Kcal.App.Services;
 
-public class UserService(Context dbContext) : IUserService
+public class UserService(IUserRepository userRepository) : IUserService
 {
-    private readonly Context _dbContext = dbContext;
+    private readonly IUserRepository _userRepository = userRepository;
 
     public async Task<List<UserDTO?>> GetAll()
     {
-        return await _dbContext.Users
-            .Include(u => u.ConsumedProducts)
-            .ThenInclude(cp => cp.Product)
-            .OrderBy(user => user.Name)
-            .Select(user => UserDTO.ModelToDto(user))
-            .ToListAsync();
+        List<User> users = await _userRepository.GetAll();
+        return users.Select(user => UserDTO.ModelToDto(user)).ToList();
     }
 
     public async Task<UserDTO?> GetById(Guid userId)
     {
-        User? user = await _dbContext.Users
-            .Include(u => u.ConsumedProducts)
-            .ThenInclude(cp => cp.Product)
-            .FirstOrDefaultAsync(u => u.UserId == userId) ?? throw new NotFoundException("Não foi localizado usuário!");
+        User user = await _userRepository.GetById(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
         return UserDTO.ModelToDto(user);
     }
 
     public async Task<List<UserDTO?>> GetByName(string name)
     {
-        var users = await _dbContext.Users
-            .Where(user => user.Name.Contains(name))
-            .OrderBy(user => user.Name)
-            .Select(user => UserDTO.ModelToDto(user))
-            .ToListAsync();
+        var users = await _userRepository.GetByName(name);
 
-        return users;
+        if (users.Count == 0)
+            throw new NotFoundException("Não foi localizado usuários!");
+
+        return users.Select(user => UserDTO.ModelToDto(user)).ToList();
     }
 
 
     public async Task<UserDTO> Create(User newUser)
     {
-        if (IsEmailNotAvaliable(newUser.Email)) throw new EmailNotAvaliableException("Email já em uso!");
+        if (await IsEmailNotAvaliable(newUser.Email)) throw new EmailNotAvaliableException("Email já em uso!");
 
         newUser.DataCadastro = DateTime.Now;
         newUser.MetabolismoBasal = CalcularMetabolismoBasal(newUser);
 
-        await _dbContext.Users.AddAsync(newUser);
-        await _dbContext.SaveChangesAsync();
+        await _userRepository.Create(newUser);
         return UserDTO.ModelToDto(newUser)!;
     }
 
     public async Task<UserDTO> Update(Guid userId, UpdateUserDTO updatedUser)
     {
-        User? user = await _dbContext.Users.FindAsync(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
+        User? user = await _userRepository.GetById(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
 
         if (updatedUser.Name != null)
             user.Name = updatedUser.Name;
@@ -74,33 +64,18 @@ public class UserService(Context dbContext) : IUserService
 
         user.MetabolismoBasal = CalcularMetabolismoBasal(user);
 
-        await _dbContext.SaveChangesAsync();
-        return UserDTO.ModelToDto(user)!;
-    }
-
-    public async Task<UserDTO> UpdateCredencials(Guid userId, UpdateUserCredencialsDTO updatedUser)
-    {
-
-        User? user = await _dbContext.Users.FindAsync(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
-
-        if (IsEmailNotAvaliable(updatedUser.EmailNovo)) throw new EmailNotAvaliableException("Email já em uso!");
-
-        user.Email = updatedUser.EmailNovo;
-        user.Senha = updatedUser.SenhaNova;
-        await _dbContext.SaveChangesAsync();
+        await _userRepository.Update();
         return UserDTO.ModelToDto(user)!;
     }
 
     public async Task Delete(Guid userId)
     {
-        User? user = await _dbContext.Users.FindAsync(userId) ?? throw new NotFoundException("Não foi localizado usuário!");
-        _dbContext.Users.Remove(user);
-        await _dbContext.SaveChangesAsync();
+        await _userRepository.Delete(userId);
     }
 
-    public bool IsEmailNotAvaliable(string email)
+    public async Task<bool> IsEmailNotAvaliable(string email)
     {
-        return _dbContext.Users.Any(u => u.Email == email);
+        return await _userRepository.IsEmailAvaliable(email);
     }
 
     private int CalcularMetabolismoBasal(User user)
@@ -110,7 +85,7 @@ public class UserService(Context dbContext) : IUserService
         int idade = CalcularIdade(user.DataNascimento);
         string sexo = user.Sexo;
 
-        if (sexo == "f" || sexo == "F")
+        if (sexo.ToUpper() == "F")
         {
             return (10 * peso) + (6 * altura) - (5 * idade) - 161;
         }
@@ -120,7 +95,7 @@ public class UserService(Context dbContext) : IUserService
         }
     }
 
-    private int CalcularIdade(DateTime dataNascimento)
+    private static int CalcularIdade(DateTime dataNascimento)
     {
         int idade = DateTime.Now.Year - dataNascimento.Year;
 

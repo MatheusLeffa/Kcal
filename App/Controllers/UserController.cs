@@ -16,7 +16,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
 
 
     [HttpGet]
-    public async Task<ActionResult<List<UserDTO>>> GetAll(Guid id)
+    public async Task<ActionResult<List<UserDTO>>> GetAll()
     {
         try
         {
@@ -56,6 +56,10 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         {
             List<UserDTO?> users = await _userService.GetByName(name);
             return Ok(new SucessoDto<List<UserDTO?>>(users));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ErroDto(ex.Message));
         }
         catch (Exception ex)
         {
@@ -106,37 +110,13 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
     }
 
-    [HttpPut("UpdateCredencials/{id:guid}")]
-    public async Task<IActionResult> UpdateCredencials([FromRoute] Guid id, [FromBody] UpdateUserCredencialsDTO userDto)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        try
-        {
-            UserDTO user = await _userService.UpdateCredencials(id, userDto);
-            return AcceptedAtAction(nameof(GetById), new { id = user.UserId }, new SucessoDto<UserDTO>(user));
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new ErroDto(ex.Message));
-        }
-        catch (EmailNotAvaliableException ex)
-        {
-            return BadRequest(new ErroDto(ex.Message));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao alterar as credenciais do usuário no banco.");
-        }
-    }
-
     [HttpDelete("Delete/{id}")]
     public async Task<IActionResult> DeleteUser([FromRoute] Guid id)
     {
         try
         {
             await _userService.Delete(id);
-            return AcceptedAtAction(nameof(GetById), new { id });
+            return Ok("Usuário deletado com sucesso!");
         }
         catch (NotFoundException ex)
         {

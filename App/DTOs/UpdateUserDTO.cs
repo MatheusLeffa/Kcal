@@ -11,4 +11,5 @@ public class UpdateUserDTO
     public string? Sexo { get; set; }
     public int? Peso { get; set; }
     public int? Altura { get; set; }
+    public string? Email { get; set; }
 }
