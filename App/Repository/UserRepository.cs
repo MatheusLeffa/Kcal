@@ -1,4 +1,4 @@
-using Kcal.App.Database;
+using Kcal.Database;
 using Kcal.App.DTOs;
 using Kcal.App.Exceptions;
 using Kcal.App.Models;

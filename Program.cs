@@ -1,4 +1,4 @@
-using Kcal.App.Database;
+using Kcal.Database;
 using Kcal.App.Repository;
 using Kcal.App.Services;
 using Microsoft.EntityFrameworkCore;
