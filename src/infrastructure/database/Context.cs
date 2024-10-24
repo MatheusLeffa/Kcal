@@ -27,7 +27,8 @@ public class Context(DbContextOptions options) : DbContext(options)
             DataNascimento = DateTime.UtcNow,
             Sexo = "M",
             Altura = 180,
-            Peso = 80
+            Peso = 80,
+            Email = "matheus@example.com"
         };
 
         Product product1 = new()
