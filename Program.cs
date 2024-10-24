@@ -13,7 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<Context>(options =>
 {
     // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    options.UseSqlServer(DotNetEnv.Env.GetString("DB_LOCAL"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddLogging(builder =>
