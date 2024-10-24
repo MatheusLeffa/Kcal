@@ -1,8 +1,9 @@
-using Kcal.Database;
-using Kcal.App.Repository;
-using Kcal.App.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Kcal.src.modules.user.repositories;
+using Kcal.src.modules.user.services;
+using Kcal.src.infrastructure.database;
+using Kcal.src.modules.product.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
