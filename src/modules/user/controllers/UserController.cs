@@ -48,7 +48,7 @@ public class UserController(IUserService userService, ILogger<UserService> logge
         }
     }
 
-    [HttpGet("Search")]
+    [HttpGet("SearchByName")]
     public async Task<ActionResult<List<UserDTO>>> GetByName([FromQuery] string name)
     {
         try

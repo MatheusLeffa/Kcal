@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kcal.src.infrastructure.database;
 
-public class Context(DbContextOptions options) : DbContext(options)
+public class ApplicationContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<Product> Products { get; set; }
     public DbSet<User> Users { get; set; }
@@ -53,10 +53,10 @@ public class Context(DbContextOptions options) : DbContext(options)
             DataCadastro = DateTime.UtcNow
         };
 
+        // Data initialization
         modelBuilder.Entity<User>().HasData(user);
         modelBuilder.Entity<Product>().HasData(product1);
         modelBuilder.Entity<Product>().HasData(product2);
-
         modelBuilder.Entity<ConsumedProducts>()
             .HasData(new ConsumedProducts
             {

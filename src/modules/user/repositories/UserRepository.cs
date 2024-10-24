@@ -5,9 +5,9 @@ using Kcal.src.modules.user.domain.models;
 
 namespace Kcal.src.modules.user.repositories;
 
-public class UserRepository(Context context) : IUserRepository
+public class UserRepository(ApplicationContext context) : IUserRepository
 {
-    private readonly Context _dbContext = context;
+    private readonly ApplicationContext _dbContext = context;
 
     public async Task<List<User>> GetAll()
     {

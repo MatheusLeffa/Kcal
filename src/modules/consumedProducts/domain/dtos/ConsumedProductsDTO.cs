@@ -15,6 +15,21 @@ public class ConsumedProductsDTO
     [DataType(DataType.Date)]
     public DateTime DataConsumo { get; set; }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public static ConsumedProductsDTO ModelToDto(ConsumedProducts cp)
     {
         return new ConsumedProductsDTO
